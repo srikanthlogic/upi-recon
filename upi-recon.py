@@ -73,16 +73,14 @@ def searchvpa(searchtext, vpa_dict, threadcount):
     exit(1)
 
 def address_discovery(vpa, api_url):
-    
-    r = requests.post(api_url, data={'vpa':vpa,'merchant_id':'milaap'}, headers={'Connection':'close'})
-    if r.status_code == 200 and r.json()['status'] == 'VALID':
-        print('[+] ' + vpa + ' is a valid UPI payment address registered to ' + r.json()['customer_name']) if r.json()['customer_name'] else print('[!] The name associated with the UPI payment address could not be determined')
+    r = requests.request("POST", api_url+vpa , headers = {'Content-Type': 'application/json'})
+    if r.status_code == 200 and r.json()['isUpiRegistered']:
+        print('[+] ' + vpa + ' is a valid UPI payment address registered to ' + r.json()['name']) if r.json()['name'] else print('[!] The name associated with the UPI payment address could not be determined')
 #       if r.status_code == 200 and r.json()['success'] == False:
 #            print('[-] ' + vpa + ' not a valid UPI address')
 #  todo:      store in dict by default and print if verbosity is set
-    elif r.status_code == 200 and r.json()['status'] == 'INVALID' and arguments.debug:
+    elif r.status_code == 200 and not r.json()['isUpiRegistered'] and arguments.debug:
         print('[-] query failed for ' + vpa)
-
 
 if __name__ == '__main__':
     #  argument definition
@@ -112,7 +110,7 @@ if __name__ == '__main__':
         print(banner)
     
     #  API stuff
-    API_URL = 'https://api.juspay.in/upi/verify-vpa'
+    API_URL = 'https://upibankvalidator.com/api/upiValidation?upi='
 
     #  print informational header
     print('[i] starting at ' + datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
